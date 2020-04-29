@@ -10,3 +10,5 @@ export default {
   components: {},
 };
 </script>
+
+<style src="./assets/css/style.css"></style>
