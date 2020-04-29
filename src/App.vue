@@ -1,13 +1,16 @@
 <template>
   <div id="app" class="container mx-auto">
-    <h1 class="text-6xl font-bold text-green-600">Chingu Chingu</h1>
+    <home-header />
   </div>
 </template>
 
 <script>
+import HomeHeader from "./components/Header.vue";
 export default {
   name: "app",
-  components: {},
+  components: {
+      HomeHeader,
+  },
 };
 </script>
 
