@@ -3,8 +3,12 @@
     <home-header />
     <div class="flex flex-col items-center mt-16 pb-4 border-2 border-gray-100 shadow-lg">
       <question-tracker :total="total" :step="step" />
-      <question-card :question="questions[step-1]" @answered="answered" />
-      <div>
+      <question-card :question="currentQuestion" @answered="answered" />
+      <div class="text-center">
+        <div 
+          class="pb-2"
+          v-show="stepAnswered"
+        >{{ currentQuestion.answer === this.stepAnswer ? successMessage : failMessage }}</div>
         <button
           class="bg-blue-600 px-3 py-3 w-20 rounded"
           @click="goToNext"
@@ -59,12 +63,17 @@ export default {
       ],
       step: 1,
       stepAnswered: false,
-      stepAnswer: null
+      stepAnswer: null,
+      successMessage: "Well Done! Correct!",
+      failMessage: "Sorry, but that's incorrect!"
     };
   },
   computed: {
     total: function() {
       return this.questions.length;
+    },
+    currentQuestion() {
+      return this.questions[this.step - 1];
     }
   },
   methods: {
