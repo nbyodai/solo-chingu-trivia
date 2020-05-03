@@ -1,9 +1,22 @@
 <template>
   <div id="app" class="container h-screen mx-auto">
     <home-header />
+    <div class="flex mt-16">
+      <select
+        name="LeaveType"
+        @change="selectTopic($event)"
+        class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none"
+      >
+        >
+        <option value="all">all</option>
+        <option value="css">CSS</option>
+        <option value="html">HTML</option>
+        <option value="javascript">Javascript</option>
+      </select>
+    </div>
     <div
       v-if="questions.length"
-      class="flex flex-col items-center mt-16 pb-4 border-2 border-gray-100 shadow-lg"
+      class="flex flex-col items-center pb-4 border-2 border-gray-100 shadow-lg"
     >
       <question-tracker :total="total" :step="step" />
       <question-card :question="currentQuestion" @answered="answered" />
@@ -31,6 +44,21 @@ import HomeHeader from "./components/Header.vue";
 import QuestionCard from "./components/QuestionCard.vue";
 import QuestionTracker from "./components/QuestionTracker";
 
+const filters = {
+  all: function(questions) {
+    return questions;
+  },
+  html: function(questions) {
+    return questions.filter(q => q.topic === "html");
+  },
+  css: function(questions) {
+    return questions.filter(q => q.topic === "css");
+  },
+  javascript: function(questions) {
+    return questions.filter(q => q.topic === "javascript");
+  }
+};
+
 export default {
   name: "app",
   components: {
@@ -47,20 +75,24 @@ export default {
       step: 1,
       stepAnswered: false,
       stepAnswer: null,
+      setTopic: "all",
       correctAnswers: 0,
       successMessage: "Well Done! Correct!",
       failMessage: "Sorry, but that's incorrect!"
     };
   },
   computed: {
+    filteredQuestions: function() {
+      return filters[this.setTopic](this.questions);
+    },
     total: function() {
-      return this.questions.length;
+      return filters[this.setTopic](this.questions).length;
     },
     currentQuestion() {
-      return this.questions[this.step - 1];
+      return filters[this.setTopic](this.questions)[this.step - 1];
     },
     isFinalQuestion() {
-      return this.step == this.questions.length;
+      return this.step == filters[this.setTopic](this.questions).length;
     }
   },
   methods: {
@@ -78,6 +110,9 @@ export default {
       } else {
         return;
       }
+    },
+    selectTopic: function(event) {
+      this.setTopic = event.target.value;
     },
     answered: function(answer) {
       this.stepAnswered = true;
