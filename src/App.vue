@@ -1,7 +1,8 @@
 <template>
   <div id="app" class="container h-screen mx-auto">
     <home-header />
-    <div class="flex flex-col mt-16">
+    <div class="flex flex-col mt-16 border-2 border-gray-100 shadow-lg">
+      <question-tracker :total="total" :step="step" />
       <question-card :question="questions[0]" />
     </div>
   </div>
@@ -10,11 +11,14 @@
 <script>
 import HomeHeader from "./components/Header.vue";
 import QuestionCard from "./components/QuestionCard.vue";
+import QuestionTracker from "./components/QuestionTracker";
+
 export default {
   name: "app",
   components: {
     HomeHeader,
-    QuestionCard
+    QuestionCard,
+    QuestionTracker
   },
   data: function() {
     return {
@@ -34,6 +38,14 @@ export default {
         }
       ]
     };
+  },
+  computed: {
+    total: function() {
+      return this.questions.length;
+    },
+    step: function() {
+      return 1;
+    }
   }
 };
 </script>
