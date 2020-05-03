@@ -1,7 +1,10 @@
 <template>
   <div id="app" class="container h-screen mx-auto">
     <home-header />
-    <div class="flex flex-col items-center mt-16 pb-4 border-2 border-gray-100 shadow-lg">
+    <div
+      v-if="questions.length"
+      class="flex flex-col items-center mt-16 pb-4 border-2 border-gray-100 shadow-lg"
+    >
       <question-tracker :total="total" :step="step" />
       <question-card :question="currentQuestion" @answered="answered" />
       <div class="text-center">
@@ -16,7 +19,7 @@
         >Next</button>
         <div v-show="stepAnswered && isFinalQuestion">
           <p>Trivia completed!</p>
-          <p>score: {{ correctAnswers }} / {{ total }} </p>
+          <p>score: {{ correctAnswers }} / {{ total }}</p>
         </div>
       </div>
     </div>
@@ -35,36 +38,12 @@ export default {
     QuestionCard,
     QuestionTracker
   },
+  mounted() {
+    this.fetchQuestions();
+  },
   data: function() {
     return {
-      questions: [
-        {
-          question:
-            "Which HTML5 element should contain important links for navigating a website?",
-          id: 1,
-          topic: "html",
-          choices: {
-            a: "<li>",
-            b: "<ul>",
-            c: "<header>",
-            d: "<nav>"
-          },
-          answer: "d"
-        },
-        {
-          question:
-            "Which HTML5 element should contain important information about what page you are on and the topic of the page?",
-          id: 2,
-          topic: "html",
-          choices: {
-            a: "<li>",
-            b: "<ul>",
-            c: "<header>",
-            d: "<nav>"
-          },
-          answer: "c"
-        }
-      ],
+      questions: [],
       step: 1,
       stepAnswered: false,
       stepAnswer: null,
@@ -85,6 +64,13 @@ export default {
     }
   },
   methods: {
+    fetchQuestions: function() {
+      fetch("https://johnmeade-webdev.github.io/chingu_quiz_api/trial.json")
+        .then(response => response.json())
+        .then(json => {
+          this.questions = json;
+        });
+    },
     goToNext: function() {
       if (!this.isFinalQuestion) {
         this.resetStepValues();
@@ -96,7 +82,8 @@ export default {
     answered: function(answer) {
       this.stepAnswered = true;
       this.stepAnswer = answer;
-      if (this.currentQuestion.answer === this.stepAnswer) this.correctAnswers++;
+      if (this.currentQuestion.answer === this.stepAnswer)
+        this.correctAnswers++;
     },
 
     resetStepValues: function() {
