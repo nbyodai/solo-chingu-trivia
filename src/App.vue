@@ -5,15 +5,19 @@
       <question-tracker :total="total" :step="step" />
       <question-card :question="currentQuestion" @answered="answered" />
       <div class="text-center">
-        <div 
+        <div
           class="pb-2"
           v-show="stepAnswered"
         >{{ currentQuestion.answer === this.stepAnswer ? successMessage : failMessage }}</div>
         <button
           class="bg-blue-600 px-3 py-3 w-20 rounded"
           @click="goToNext"
-          v-show="stepAnswered"
+          v-show="stepAnswered && !isFinalQuestion"
         >Next</button>
+        <div v-show="stepAnswered && isFinalQuestion">
+          <p>Trivia completed!</p>
+          <p>score: {{ correctAnswers }} / {{ total }} </p>
+        </div>
       </div>
     </div>
   </div>
@@ -64,6 +68,7 @@ export default {
       step: 1,
       stepAnswered: false,
       stepAnswer: null,
+      correctAnswers: 0,
       successMessage: "Well Done! Correct!",
       failMessage: "Sorry, but that's incorrect!"
     };
@@ -74,12 +79,14 @@ export default {
     },
     currentQuestion() {
       return this.questions[this.step - 1];
+    },
+    isFinalQuestion() {
+      return this.step == this.questions.length;
     }
   },
   methods: {
     goToNext: function() {
-      const isNotLastQuestion = this.step < this.questions.length;
-      if (isNotLastQuestion) {
+      if (!this.isFinalQuestion) {
         this.resetStepValues();
         this.step++;
       } else {
@@ -89,7 +96,9 @@ export default {
     answered: function(answer) {
       this.stepAnswered = true;
       this.stepAnswer = answer;
+      if (this.currentQuestion.answer === this.stepAnswer) this.correctAnswers++;
     },
+
     resetStepValues: function() {
       this.stepAnswered = false;
       this.stepAnswer = null;
