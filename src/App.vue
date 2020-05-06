@@ -1,18 +1,24 @@
 <template>
   <div id="app" class="container h-screen mx-auto">
     <home-header />
-    <div class="flex mt-16">
-      <select
-        name="TopicType"
-        @change="selectTopic($event)"
-        class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none"
-      >
+    <div class="flex justify-between mt-16">
+      <div>
+        <select
+          name="TopicType"
+          @change="selectTopic($event)"
+          class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none"
         >
-        <option value="all" :disabled="isDisabled('all')">all</option>
-        <option value="css" :disabled="isDisabled('css')">CSS</option>
-        <option value="html" :disabled="isDisabled('html')">HTML</option>
-        <option value="javascript" :disabled="isDisabled('javascript')">Javascript</option>
-      </select>
+          >
+          <option value="all" :disabled="isDisabled('all')">all</option>
+          <option value="css" :disabled="isDisabled('css')">CSS</option>
+          <option value="html" :disabled="isDisabled('html')">HTML</option>
+          <option value="javascript" :disabled="isDisabled('javascript')">Javascript</option>
+        </select>
+      </div>
+      <div>
+        <button v-if="trivialista" @click="saveInfo">saveDetails</button>
+        <button v-else @click="createNewUser()">create new user</button>
+      </div>
     </div>
     <div
       v-if="questions.length"
@@ -28,6 +34,7 @@
         <div
           class="pb-2"
           v-show="stepAnswered"
+          :key="getCurrentQuestion().id"
         >{{ getCurrentQuestion().answer === this.stepAnswer ? successMessage : failMessage }}</div>
         <button
           class="bg-blue-600 px-3 py-3 w-20 rounded"
@@ -47,6 +54,9 @@
 import HomeHeader from "./components/Header.vue";
 import QuestionCard from "./components/QuestionCard.vue";
 import QuestionTracker from "./components/QuestionTracker";
+
+import { api } from "./api";
+import { generateToken, getLocalStorageUser, setLocalStorageUser } from "./utils";
 
 const filters = {
   all: function(questions) {
@@ -72,10 +82,12 @@ export default {
   },
   mounted() {
     this.fetchQuestions();
+    this.getUser();
   },
   data: function() {
     return {
       questions: [],
+      trivialista: null,
       store: {
         all: { answeredIds: [] },
         css: { answeredIds: [] },
@@ -145,6 +157,23 @@ export default {
     resetStepValues: function() {
       this.stepAnswered = false;
       this.stepAnswer = null;
+    },
+    getUser: async function() {
+      const userToken = getLocalStorageUser();
+      if (userToken) this.trivialista = await api.getUser(userToken);
+    },
+    saveInfo: function() {
+      const userToken = getLocalStorageUser();
+      api.saveInfo(this.trivialista._id, userToken, this.store.all.answeredIds);
+    },
+    resetInfo: function() {
+      const userToken = getLocalStorageUser();
+      api.saveInfo(this.trivialista._id, userToken, []);
+    },
+    createNewUser: async function() {
+      const newUserToken = generateToken();
+      this.trivialista = await api.createNewUser(newUserToken);
+      setLocalStorageUser(newUserToken)
     }
   }
 };
