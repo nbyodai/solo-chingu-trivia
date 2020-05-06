@@ -3,34 +3,38 @@
     <home-header />
     <div class="flex mt-16">
       <select
-        name="LeaveType"
+        name="TopicType"
         @change="selectTopic($event)"
         class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none"
       >
         >
-        <option value="all">all</option>
-        <option value="css">CSS</option>
-        <option value="html">HTML</option>
-        <option value="javascript">Javascript</option>
+        <option value="all" :disabled="isDisabled('all')">all</option>
+        <option value="css" :disabled="isDisabled('css')">CSS</option>
+        <option value="html" :disabled="isDisabled('html')">HTML</option>
+        <option value="javascript" :disabled="isDisabled('javascript')">Javascript</option>
       </select>
     </div>
     <div
       v-if="questions.length"
       class="flex flex-col items-center pb-4 border-2 border-gray-100 shadow-lg"
     >
-      <question-tracker :total="total" :step="step" />
-      <question-card :question="currentQuestion" @answered="answered" />
+      <question-tracker :total="total" :step="currentStep" />
+      <question-card
+        :key="getCurrentQuestion().id"
+        :question="getCurrentQuestion()"
+        @answered="answered"
+      />
       <div class="text-center">
         <div
           class="pb-2"
           v-show="stepAnswered"
-        >{{ currentQuestion.answer === this.stepAnswer ? successMessage : failMessage }}</div>
+        >{{ getCurrentQuestion().answer === this.stepAnswer ? successMessage : failMessage }}</div>
         <button
           class="bg-blue-600 px-3 py-3 w-20 rounded"
           @click="goToNext"
-          v-show="stepAnswered && !isFinalQuestion"
+          v-show="stepAnswered && !isFinalQuestion()"
         >Next</button>
-        <div v-show="stepAnswered && isFinalQuestion">
+        <div v-show="stepAnswered && isFinalQuestion()">
           <p>Trivia completed!</p>
           <p>score: {{ correctAnswers }} / {{ total }}</p>
         </div>
@@ -72,7 +76,12 @@ export default {
   data: function() {
     return {
       questions: [],
-      step: 1,
+      store: {
+        all: { answeredIds: [] },
+        css: { answeredIds: [] },
+        html: { answeredIds: [] },
+        javascript: { answeredIds: [] }
+      },
       stepAnswered: false,
       stepAnswer: null,
       setTopic: "all",
@@ -88,11 +97,8 @@ export default {
     total: function() {
       return filters[this.setTopic](this.questions).length;
     },
-    currentQuestion() {
-      return filters[this.setTopic](this.questions)[this.step - 1];
-    },
-    isFinalQuestion() {
-      return this.step == filters[this.setTopic](this.questions).length;
+    currentStep: function() {
+      return this.store[this.setTopic].answeredIds.length + 1;
     }
   },
   methods: {
@@ -104,9 +110,11 @@ export default {
         });
     },
     goToNext: function() {
-      if (!this.isFinalQuestion) {
+      const currentQuestion = this.getCurrentQuestion();
+      this.store.all.answeredIds.push(currentQuestion.id);
+      this.store[currentQuestion.topic].answeredIds.push(currentQuestion.id);
+      if (!this.isFinalQuestion()) {
         this.resetStepValues();
-        this.step++;
       } else {
         return;
       }
@@ -114,13 +122,26 @@ export default {
     selectTopic: function(event) {
       this.setTopic = event.target.value;
     },
+    getCurrentQuestion: function() {
+      const questionSet = filters[this.setTopic](this.questions);
+      return questionSet.find(q => !this.store.all.answeredIds.includes(q.id));
+    },
     answered: function(answer) {
       this.stepAnswered = true;
       this.stepAnswer = answer;
-      if (this.currentQuestion.answer === this.stepAnswer)
-        this.correctAnswers++;
+      const currentQuestion = this.getCurrentQuestion();
+      if (currentQuestion.answer === this.stepAnswer) this.correctAnswers++;
     },
-
+    isFinalQuestion: function() {
+      return this.currentStep == filters[this.setTopic](this.questions).length;
+    },
+    isDisabled: function(topic) {
+      let boolDisabled = false;
+      if (this.store.all.answeredIds.length > 0) {
+        boolDisabled = this.setTopic != topic;
+      }
+      return boolDisabled;
+    },
     resetStepValues: function() {
       this.stepAnswered = false;
       this.stepAnswer = null;
