@@ -56,7 +56,11 @@ import QuestionCard from "./components/QuestionCard.vue";
 import QuestionTracker from "./components/QuestionTracker";
 
 import { api } from "./api";
-import { generateToken, getLocalStorageUser, setLocalStorageUser } from "./utils";
+import {
+  generateToken,
+  getLocalStorageUser,
+  setLocalStorageUser
+} from "./utils";
 
 const filters = {
   all: function(questions) {
@@ -160,20 +164,41 @@ export default {
     },
     getUser: async function() {
       const userToken = getLocalStorageUser();
-      if (userToken) this.trivialista = await api.getUser(userToken);
+      if (userToken) {
+        this.trivialista = await api.getUser(userToken);
+        const savedTopic = this.trivialista.topic;
+        this.trivialista.trivia_set.forEach(triviaId => {
+          this.store[savedTopic].answeredIds.push(triviaId);
+        });
+        this.setTopic = savedTopic;
+      }
     },
     saveInfo: function() {
       const userToken = getLocalStorageUser();
-      api.saveInfo(this.trivialista._id, userToken, this.store.all.answeredIds);
+      api.saveInfo({
+        id: this.trivialista._id,
+        userToken,
+        topic: this.setTopic,
+        answeredIds: this.store.all.answeredIds
+      });
     },
     resetInfo: function() {
       const userToken = getLocalStorageUser();
-      api.saveInfo(this.trivialista._id, userToken, []);
+      api.saveInfo({
+        id: this.trivialista._id,
+        userToken,
+        topic: "",
+        answeredIds: []
+      });
     },
     createNewUser: async function() {
-      const newUserToken = generateToken();
-      this.trivialista = await api.createNewUser(newUserToken);
-      setLocalStorageUser(newUserToken)
+      const token = generateToken();
+      this.trivialista = await api.createNewUser({
+        token,
+        answeredIds: this.store.all.answeredIds,
+        topic: this.setTopic
+      });
+      setLocalStorageUser(token);
     }
   }
 };

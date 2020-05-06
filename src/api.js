@@ -20,11 +20,15 @@ export const api = {
         throw new Error("Error:", error);
       });
   },
-  saveInfo: (objectId, token, answeredIds) => {
-    return fetch(`${baseUrl}/${objectId}`, {
+  saveInfo: ({ id, userToken, topic, answeredIds }) => {
+    return fetch(`${baseUrl}/${id}`, {
       method: "PUT",
       headers,
-      body: JSON.stringify({ token, trivia_set: answeredIds }),
+      body: JSON.stringify({
+        topic,
+        token: userToken,
+        trivia_set: answeredIds,
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
@@ -34,13 +38,14 @@ export const api = {
         throw new Error("Error:", error);
       });
   },
-  createNewUser: (token) => {
+  createNewUser: ({ token, topic, answeredIds }) => {
     return fetch(baseUrl, {
       method: "POST",
       headers,
       body: JSON.stringify({
         token,
-        trivia_set: JSON.stringify([]),
+        topic,
+        trivia_set: answeredIds,
       }),
     })
       .then((response) => response.json())
