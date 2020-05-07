@@ -1,6 +1,6 @@
 const headers = {
   "content-type": "application/json",
-  "x-apikey": "5eb2191d4064fd38041652e6",
+  "x-apikey": process.env.VUE_APP_API_KEY,
   "cache-control": "no-cache",
 };
 
