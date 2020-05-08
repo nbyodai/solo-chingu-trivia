@@ -6,7 +6,7 @@
         <select
           name="TopicType"
           @change="selectTopic($event)"
-          class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none"
+          class="block appearance-none bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-6 rounded shadow leading-tight focus:outline-none"
         >
           >
           <option value="all" :disabled="isDisabled('all')">all</option>
@@ -16,13 +16,21 @@
         </select>
       </div>
       <div>
-        <button v-if="trivialista" @click="saveInfo">saveDetails</button>
-        <button v-else @click="createNewUser()">create new user</button>
+        <button
+          class="bg-blue-400 px-3 py-2 rounded"
+          v-if="trivialista"
+          @click="saveInfo"
+        >Save Trivia</button>
+        <button
+          class="bg-green-400 px-3 py-2 rounded"
+          v-else
+          @click="createNewUser()"
+        >Create Profile</button>
       </div>
     </div>
     <div
       v-if="questions.length"
-      class="flex flex-col items-center pb-4 border-2 border-gray-100 shadow-lg"
+      class="flex flex-col items-center mt-4 pb-4 border-2 border-gray-100 shadow-lg"
     >
       <question-tracker :total="total" :step="currentStep" />
       <question-card
