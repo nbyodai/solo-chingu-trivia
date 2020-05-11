@@ -14,10 +14,11 @@ export const api = {
     })
       .then((response) => response.json())
       .then((json) => {
-        return json[0] ? json[0] : null;
+        const data = json[0] ? json[0] : null;
+        return { success: true, data };
       })
       .catch((error) => {
-        throw new Error("Error:", error);
+        return { success: false, data: error };
       });
   },
   saveInfo: ({ id, userToken, topic, answeredIds }) => {
@@ -32,10 +33,10 @@ export const api = {
     })
       .then((response) => response.json())
       .then((data) => {
-        return { Success: true, data };
+        return { success: true, data };
       })
       .catch((error) => {
-        throw new Error("Error:", error);
+        return { success: false, data: error };
       });
   },
   createNewUser: ({ token, topic, answeredIds }) => {
@@ -53,7 +54,7 @@ export const api = {
         return data;
       })
       .catch((error) => {
-        throw new Error("Error:", error);
+        return { success: false, data: error };
       });
   },
 };

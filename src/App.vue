@@ -1,6 +1,10 @@
 <template>
   <div id="app" class="container h-screen mx-auto">
     <home-header />
+    <div class="flex flex-row-reverse h-4">
+      <p class="text-green-400" v-if="showSuccessful">Successfull!</p>
+      <p class="text-red-400" v-if="showFail">Failed!</p>
+    </div>
     <div class="flex justify-between mt-16">
       <div>
         <select
@@ -16,11 +20,10 @@
         </select>
       </div>
       <div>
-        <button
-          class="bg-blue-400 px-3 py-2 rounded"
-          v-if="trivialista"
-          @click="saveInfo"
-        >Save Trivia</button>
+        <button class="bg-blue-400 px-3 py-2 rounded" v-if="trivialista" @click="saveInfo">
+          Save Trivia
+          <app-loader :show="loading" />
+        </button>
         <button
           class="bg-green-400 px-3 py-2 rounded"
           v-else
@@ -62,6 +65,7 @@
 import HomeHeader from "./components/Header.vue";
 import QuestionCard from "./components/QuestionCard.vue";
 import QuestionTracker from "./components/QuestionTracker";
+import AppLoader from "./components/AppLoader";
 
 import { api } from "./api";
 import {
@@ -90,7 +94,8 @@ export default {
   components: {
     HomeHeader,
     QuestionCard,
-    QuestionTracker
+    QuestionTracker,
+    AppLoader
   },
   mounted() {
     this.fetchQuestions();
@@ -111,7 +116,10 @@ export default {
       setTopic: "all",
       correctAnswers: 0,
       successMessage: "Well Done! Correct!",
-      failMessage: "Sorry, but that's incorrect!"
+      failMessage: "Sorry, but that's incorrect!",
+      loading: false,
+      showSuccessful: false,
+      showFail: false
     };
   },
   computed: {
@@ -173,22 +181,42 @@ export default {
     getUser: async function() {
       const userToken = getLocalStorageUser();
       if (userToken) {
-        this.trivialista = await api.getUser(userToken);
-        const savedTopic = this.trivialista.topic;
-        this.trivialista.trivia_set.forEach(triviaId => {
-          this.store[savedTopic].answeredIds.push(triviaId);
-        });
-        this.setTopic = savedTopic;
+        const result = await api.getUser(userToken);
+        if (result.success) {
+          this.trivialista = result.data;
+          const savedTopic = this.trivialista.topic;
+          this.trivialista.trivia_set.forEach(triviaId => {
+            this.store[savedTopic].answeredIds.push(triviaId);
+          });
+          this.setTopic = savedTopic;
+        }
       }
     },
-    saveInfo: function() {
+    saveInfo: async function() {
+      this.showSuccessful = false;
+      this.showFail = false;
+      this.loading = true;
+
       const userToken = getLocalStorageUser();
-      api.saveInfo({
+      const result = await api.saveInfo({
         id: this.trivialista._id,
         userToken,
         topic: this.setTopic,
         answeredIds: this.store.all.answeredIds
       });
+      this.loading = false;
+
+      if (result.success) {
+        this.showSuccessful = true;
+        setTimeout(() => {
+          this.showSuccessful = false;
+        }, 2000);
+      } else {
+        this.showFail = true;
+        setTimeout(() => {
+          this.showFail = false;
+        }, 2000);
+      }
     },
     resetInfo: function() {
       const userToken = getLocalStorageUser();
